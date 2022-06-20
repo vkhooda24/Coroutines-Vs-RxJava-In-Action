@@ -5,11 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.Group
+import androidx.constraintlayout.widget.Guideline
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.vkhooda24.coroutinesinaction.service.CountriesAPI
+import com.vkhooda24.coroutinesinaction.service.RetrofitBuilder
 import com.vkhooda24.coroutinesinaction.view.MainRecyclerViewAdapter
+
 
 class MainFragment : Fragment() {
 
@@ -17,8 +22,14 @@ class MainFragment : Fragment() {
         fun newInstance() = MainFragment()
     }
 
-    private lateinit var viewModelRx: MainViewModelRx
-    private lateinit var viewModelCoroutines: MainViewModelCoroutines
+    private val countriesAPI: CountriesAPI by lazy {
+        RetrofitBuilder.getInstance().create(CountriesAPI::class.java)
+    }
+
+    private val viewModel: MainViewModel by lazy {
+        MainViewModelCoroutinesImpl(MainRepoImpl(countriesAPI))
+//        MainViewModelRxImpl(MainRepoImpl(countriesAPI))
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,55 +40,71 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val recyclerView = view.findViewById<RecyclerView>(R.id.countriesListRecyclerView)
-        val apiTypeText = view.findViewById<TextView>(R.id.apiTypeText)
-        recyclerView.layoutManager = LinearLayoutManager(context)
-        viewModelRx = ViewModelProvider(this)[MainViewModelRx::class.java]
-        viewModelCoroutines = ViewModelProvider(this)[MainViewModelCoroutines::class.java]
+//        viewModel = ViewModelProvider(this)[MainViewModelRxImpl::class.java]
 
-//        makeApiCallsWithRx()
-        makeApiCallsWithCoroutines()
+        setCountriesListObserver()
+        setCountryDetailsObserver()
 
-        setRxAPIObserver(apiTypeText, recyclerView)
-        setCoroutinesAPIObserver(apiTypeText, recyclerView)
+        viewModel.getCountriesList()
+        resetGuideline()
+//        viewModel.getCountryDetails() //Sequential calls
+//        viewModel.getCountriesListAndDetailsWithZipOperator("USA")
+//        viewModel.getCountriesListAndDetailsAsynchronously("USA")
     }
 
-    private fun makeApiCallsWithRx() {
-        viewModelRx.getCountriesListWithRx()
-//        viewModelRx.getCountriesListSequentiallyWithRx()
-//        viewModel.getCountriesListAsynchronouslyWithRx()
-    }
+    private fun setCountriesListObserver() {
+        view?.let { view ->
+            val recyclerView = view.findViewById<RecyclerView>(R.id.countriesListRecyclerView)
+            val apiTypeText = view.findViewById<TextView>(R.id.apiTypeText)
+            recyclerView.layoutManager = LinearLayoutManager(context)
 
-    private fun makeApiCallsWithCoroutines() {
-        viewModelCoroutines.getCountriesListWithCoroutines()
-//        viewModelCoroutines.getCountriesListSequentiallyWithCoroutines()
-//        viewModelCoroutines.getCountriesListAsynchronouslyWithCoroutines()
-    }
-
-    private fun setRxAPIObserver(
-        apiTypeText: TextView,
-        recyclerView: RecyclerView,
-    ) {
-        viewModelRx.countriesListLiveData.observe(viewLifecycleOwner) {
-            apiTypeText.text = "Countries list with Rx API"
-            val adapter = MainRecyclerViewAdapter(it)
-            recyclerView.adapter = adapter
+            if (viewModel.countriesListLiveData.hasActiveObservers().not()) {
+                viewModel.countriesListLiveData.observe(viewLifecycleOwner) {
+                    val apiTextContent: String = apiTextContent()
+                    apiTypeText.text = apiTextContent
+                    recyclerView.visibility = View.VISIBLE
+                    val adapter = MainRecyclerViewAdapter(it)
+                    recyclerView.adapter = adapter
+                }
+            }
         }
     }
 
-    private fun setCoroutinesAPIObserver(
-        apiTypeText: TextView,
-        recyclerView: RecyclerView,
-    ) {
-        viewModelCoroutines.countriesListLiveData.observe(viewLifecycleOwner) {
-            apiTypeText.text = "Countries list with Coroutines API"
-            val adapter = MainRecyclerViewAdapter(it)
-            recyclerView.adapter = adapter
+    private fun setCountryDetailsObserver() {
+        view?.let { view ->
+            val apiTypeText = view.findViewById<TextView>(R.id.apiTypeText)
+            val countryNameText = view.findViewById<TextView>(R.id.countryName)
+            val capitalNameText = view.findViewById<TextView>(R.id.countryCapitalName)
+            val populationText = view.findViewById<TextView>(R.id.countryPopulation)
+            val detailsGroup = view.findViewById<Group>(R.id.detailsGroup)
+
+            if (viewModel.countryDetailsLiveData.hasActiveObservers().not()) {
+                viewModel.countryDetailsLiveData.observe(viewLifecycleOwner) {
+                    detailsGroup.visibility = View.VISIBLE
+                    apiTypeText.text = apiTextContent()
+                    countryNameText.text = getString(R.string.country_name, it.name.common)
+                    capitalNameText.text =
+                        getString(R.string.capital_name, it.capital.firstOrNull())
+                    populationText.text = getString(R.string.population, it.population)
+                }
+            }
+        }
+    }
+
+    private fun apiTextContent() =
+        (viewModel is MainViewModelCoroutinesImpl).takeIf { isTrue -> isTrue }
+            ?.let content@{
+                return@content "Coroutines API Call's Result"
+            } ?: "RxJava API Call's Result"
+
+    private fun resetGuideline() {
+        view?.let {
+            val guideLine: Guideline = it.findViewById(R.id.topGuideline) as Guideline
+            val params: ConstraintLayout.LayoutParams =
+                guideLine.layoutParams as ConstraintLayout.LayoutParams
+            params.guidePercent = 0.1f
+
+            guideLine.layoutParams = params
         }
     }
 }
-
-
-//        viewLifecycleOwner.lifecycleScope.launch {
-//            val countriesList = viewModelCoroutines.getCountriesList()
-//        }

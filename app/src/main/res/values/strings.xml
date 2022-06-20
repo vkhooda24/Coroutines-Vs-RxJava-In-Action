@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Coroutines In Action</string>
     <string name="coroutines_text">Kotlin Coroutines</string>
+    <string name="country_name">Country name: %s</string>
+    <string name="capital_name">Capital name: %s</string>
+    <string name="population">Population: %s</string>
 </resources>

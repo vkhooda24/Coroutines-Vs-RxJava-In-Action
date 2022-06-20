@@ -1,21 +1,14 @@
-package com.vkhooda24.coroutinesinaction.service
+package com.vkhooda24.coroutinesinaction
 
+import com.vkhooda24.coroutinesinaction.service.Country
 import io.reactivex.Single
-import retrofit2.http.GET
 import retrofit2.http.Path
 
+interface MainRepo {
 
-interface CountriesAPI {
-    @GET("all")
     fun getAllCountriesList(): Single<List<Country>>
-
-    @GET("name/{countryName}")
     fun getCountryDetails(@Path("countryName") countryName: String): Single<List<Country>>
 
-    @GET("all")
     suspend fun getCountriesList(): List<Country>
-
-    @GET("name/{countryName}")
     suspend fun getGivenCountryDetails(@Path("countryName") countryName: String): List<Country>
-
 }

@@ -7,6 +7,13 @@
     android:layout_height="match_parent"
     tools:context=".MainFragment">
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/topGuideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent=".25" />
+
     <TextView
         android:id="@+id/apiTypeText"
         android:layout_width="wrap_content"
@@ -14,7 +21,6 @@
         android:padding="@dimen/dp_16"
         android:text="Main Fragment"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/countriesListRecyclerView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -23,8 +29,56 @@
         android:id="@+id/countriesListRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="@dimen/dp_0"
+        android:layout_marginStart="@dimen/dp_16"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topGuideline" />
+
+    <TextView
+        android:id="@+id/countryName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_8"
+        android:padding="@dimen/dp_8"
+        android:text="Country name:"
+        android:textStyle="bold"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/apiTypeText" />
+
+
+    <TextView
+        android:id="@+id/countryCapitalName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_8"
+        android:padding="@dimen/dp_8"
+        android:text="Capital name:"
+        android:textStyle="bold"
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@id/countryPopulation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/countryName" />
+
+    <TextView
+        android:id="@+id/countryPopulation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_8"
+        android:padding="@dimen/dp_8"
+        android:text="Population:"
+        android:textStyle="bold"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/countryCapitalName" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/detailsGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:constraint_referenced_ids="countryName, countryCapitalName, countryPopulation" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
